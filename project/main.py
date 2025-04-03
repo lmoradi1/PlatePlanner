@@ -13,3 +13,8 @@ def index():
 @login_required
 def profile():
     return render_template('profile.html', name=current_user.name)
+
+@main.route('/generate_recipe')
+@login_required
+def generateRecipe():
+    return render_template('generateRecipe.html')

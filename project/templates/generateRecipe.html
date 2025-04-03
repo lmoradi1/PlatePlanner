@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">Generate Recipe!</h1>
+
+<!-- Form for user to enter ingredients -->
+<form id="ingredient-form">
+    <label for="ingredients">Enter ingredients (comma-separated):</label>
+    <input type="text" id="ingredients" name="ingredients" required>
+    <button type="submit">Find Recipes</button>
+</form>
+
+<!-- Section to display fetched recipes -->
+<div id="recipe-results"></div>
+
+<script>
+async function getApiKey() {
+    const response = await fetch('/get-api-key');
+    const data = await response.json();
+    return data.api_key;
+}
+
+document.getElementById('ingredient-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const ingredients = document.getElementById('ingredients').value;
+    const apiKey = await getApiKey();  //Fetches API key from backend
+    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=5&apiKey=${apiKey}`;
+
+    try {
+        const response = await fetch(url);
+        const recipes = await response.json();
+
+        let resultsDiv = document.getElementById('recipe-results');
+        resultsDiv.innerHTML = '';
+
+        if (recipes.length === 0) {
+            resultsDiv.innerHTML = '<p>No recipes found. Try different ingredients.</p>';
+            return;
+        }
+
+        // Fetch full recipe details for each recipe
+        for (let recipe of recipes) {
+            let detailsUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
+            let detailsResponse = await fetch(detailsUrl);
+            let detailsData = await detailsResponse.json();
+
+            const recipeHtml = `
+                <div>
+                    <h2>${detailsData.title}</h2>
+                    <img src="${detailsData.image}" alt="${detailsData.title}">
+                    <h3>Ingredients:</h3>
+                    <ul>
+                        ${detailsData.extendedIngredients.map(ing => `<li>${ing.original}</li>`).join('')}
+                    </ul>
+                    <h3>Instructions:</h3>
+                    <p>${detailsData.instructions || "No instructions available."}</p>
+                </div>
+                <hr>
+            `;
+            resultsDiv.innerHTML += recipeHtml;
+        }
+
+    } catch (error) {
+        console.error('Error fetching recipes:', error);
+        document.getElementById('recipe-results').innerHTML = '<p>Error fetching recipes. Please try again.</p>';
+    }
+});
+</script>
+
+{% endblock %}
