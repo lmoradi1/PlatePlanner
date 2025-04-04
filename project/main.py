@@ -9,12 +9,17 @@ main = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-@main.route('/profile')
+@main.route('/welcome')
 @login_required
-def profile():
-    return render_template('profile.html', name=current_user.name)
+def welcome():
+    return render_template('welcome.html', name=current_user.name)
 
-@main.route('/generate_recipe')
+@main.route('/generateByIngredient')
 @login_required
-def generateRecipe():
-    return render_template('generateRecipe.html')
+def generateByIngredient():
+    return render_template('generateByIngredient.html')
+
+@main.route('/generateByNutrition')
+@login_required
+def generateByNutrition():
+    return render_template('generateByNutrition.html')

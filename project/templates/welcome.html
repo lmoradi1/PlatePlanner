@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  Welcome, {{ name }}!
+</h1>
+
+<div class="columns is-centered mt-5">
+  <!-- Generate Recipes Box -->
+  <div class="column is-3">
+    <a href="{{ url_for('main.generateByIngredient') }}" class="box has-text-centered has-background-primary-light has-text-dark has-radius">
+      <h2 class="title is-4">Generate Recipes</h2>
+    </a>
+  </div>
+
+  <!-- Placeholder for Second Box -->
+  <div class="column is-3">
+    <a href="{{ url_for('main.generateByNutrition') }}" class="box has-text-centered has-background-info-light has-radius">
+      <h2 class="title is-4">Another Page</h2>
+    </a>
+  </div>
+
+  <!-- Placeholder for Third Box -->
+  <div class="column is-3">
+    <a href="{{ url_for('main.generateByIngredient') }}" class="box has-text-centered has-background-warning-light has-radius">
+      <h2 class="title is-4">Yet Another Page</h2>
+    </a>
+  </div>
+</div>
+
+{% endblock %}
