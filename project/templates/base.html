@@ -7,6 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Flask Auth Example</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <style>
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            z-index: 1;
+        }
+
+        .profile-dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,17 +33,26 @@
         <div class="hero-head">
             <nav class="navbar">
                 <div class="container">
-                    <div id="navbarMenuHeroA" class="navbar-menu">
+                    <div id="navbarMenuHeroA" class="navbar-menu is-active">
                         <div class="navbar-end">
-                            <a href="{{ url_for('main.index') }}" class="navbar-item">
-                                Home
-                            </a>
-                            <a href="{{ url_for('main.welcome') }}" class="navbar-item">
-                                Welcome
-                            </a>
-                            <a href="{{ url_for('auth.logout') }}" class="navbar-item">
-                                Logout
-                            </a>
+                            <a href="{{ url_for('main.index') }}" class="navbar-item">Home</a>
+                            <a href="{{ url_for('main.welcome') }}" class="navbar-item">Welcome</a>
+
+                            <!-- Profile Dropdown -->
+                            <div class="navbar-item profile-dropdown">
+                                <a class="icon is-large has-text-white">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </a>
+                                <div class="dropdown-content box">
+                                    <a href="{{ url_for('main.mealPlan') }}" class="dropdown-item">My Weekly Meal Plan</a>
+                                    <a href="{{ url_for('main.savedRecipes') }}" class="dropdown-item">My Saved Recipes</a>
+                                    <a href="{{ url_for('main.myPreferences') }}" class="dropdown-item">Preferences</a>
+                                    <hr class="dropdown-divider">
+                                    <a href="{{ url_for('auth.logout') }}" class="dropdown-item">Logout</a>
+                                </div>
+                            </div>
+                            <!-- End Profile Dropdown -->
+
                         </div>
                     </div>
                 </div>
@@ -34,8 +61,8 @@
 
         <div class="hero-body">
             <div class="container has-text-centered">
-               {% block content %}
-               {% endblock %}
+                {% block content %}
+                {% endblock %}
             </div>
         </div>
     </section>

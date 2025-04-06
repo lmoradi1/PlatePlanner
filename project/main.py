@@ -23,3 +23,20 @@ def generateByIngredient():
 @login_required
 def generateByNutrition():
     return render_template('generateByNutrition.html')
+
+@main.route('/mealPlan')
+@login_required
+def mealPlan():
+    return render_template('mealPlan.html')
+
+@main.route('/savedRecipes')
+@login_required
+def savedRecipes():
+    return render_template('savedRecipes.html')
+
+@main.route('/myPreferences')
+@login_required
+def myPreferences():
+    return render_template('myPreferences.html')
+
+
