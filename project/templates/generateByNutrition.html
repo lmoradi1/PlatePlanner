@@ -9,7 +9,7 @@
     <button type="button" onclick="showInputs('Fat')">Fat</button>
     <button type="button" onclick="showInputs('Protein')">Protein</button>
     <button type="button" onclick="showInputs('Carbs')">Carbs</button>
-    <!-- Add more filters as needed -->
+    <!-- Add more buttons as needed -->
 </div>
 
 <!-- Dynamic filter form -->
@@ -28,23 +28,45 @@ async function getApiKey() {
     return data.api_key;
 }
 
+// Maps category to corresponding API parameters
 const nutrientMap = {
     "Calories": ["minCalories", "maxCalories"],
     "Fat": ["minFat", "maxFat"],
     "Protein": ["minProtein", "maxProtein"],
     "Carbs": ["minCarbs", "maxCarbs"]
+    // Add more categories if desired
 };
 
+// Keep track of which filters are already added
+const addedCategories = new Set();
+
 function showInputs(category) {
+    if (addedCategories.has(category)) return; // Prevent duplicates
+    addedCategories.add(category);
+
     const inputsDiv = document.getElementById("dynamic-inputs");
-    inputsDiv.innerHTML = `<h3>${category} Range</h3>`;
+
+    const fieldset = document.createElement("fieldset");
+    fieldset.innerHTML = `<legend>${category} Range</legend>`;
 
     nutrientMap[category].forEach(param => {
-        inputsDiv.innerHTML += `
-            <label for="${param}">${param}:</label>
-            <input type="number" id="${param}" name="${param}" step="any" min="0"><br>
-        `;
+        const label = document.createElement("label");
+        label.htmlFor = param;
+        label.innerText = param + ":";
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.id = param;
+        input.name = param;
+        input.step = "any";
+        input.min = "0";
+
+        fieldset.appendChild(label);
+        fieldset.appendChild(input);
+        fieldset.appendChild(document.createElement("br"));
     });
+
+    inputsDiv.appendChild(fieldset);
 }
 
 document.getElementById("nutrient-form").addEventListener("submit", async function(event) {
