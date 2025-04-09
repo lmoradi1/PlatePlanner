@@ -1,12 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">Generate Recipe!</h1>
+<h1 class="title">Filter Recipes by Nutrition</h1>
 
-<!-- Form for user to enter ingredients -->
-<form id="ingredient-form">
-    <label for="ingredients">Enter Dietary and Nutritional Needs (comma-separated):</label>
-    <input type="text" id="ingredients" name="ingredients" required>
+<!-- Buttons for filtering categories -->
+<div id="filter-buttons">
+    <button type="button" onclick="showInputs('Calories')">Calories</button>
+    <button type="button" onclick="showInputs('Fat')">Fat</button>
+    <button type="button" onclick="showInputs('Protein')">Protein</button>
+    <button type="button" onclick="showInputs('Carbs')">Carbs</button>
+    <!-- Add more filters as needed -->
+</div>
+
+<!-- Dynamic filter form -->
+<form id="nutrient-form">
+    <div id="dynamic-inputs"></div>
     <button type="submit">Find Recipes</button>
 </form>
 
@@ -20,35 +28,70 @@ async function getApiKey() {
     return data.api_key;
 }
 
-document.getElementById('ingredient-form').addEventListener('submit', async function(event) {
-    event.preventDefault();
+const nutrientMap = {
+    "Calories": ["minCalories", "maxCalories"],
+    "Fat": ["minFat", "maxFat"],
+    "Protein": ["minProtein", "maxProtein"],
+    "Carbs": ["minCarbs", "maxCarbs"]
+};
 
-    const ingredients = document.getElementById('ingredients').value;
-    const apiKey = await getApiKey();  //Fetches API key from backend
-    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=20&apiKey=${apiKey}`;
+function showInputs(category) {
+    const inputsDiv = document.getElementById("dynamic-inputs");
+    inputsDiv.innerHTML = `<h3>${category} Range</h3>`;
+
+    nutrientMap[category].forEach(param => {
+        inputsDiv.innerHTML += `
+            <label for="${param}">${param}:</label>
+            <input type="number" id="${param}" name="${param}" step="any" min="0"><br>
+        `;
+    });
+}
+
+document.getElementById("nutrient-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const apiKey = await getApiKey();
+
+    const formElements = document.getElementById("nutrient-form").elements;
+    let queryParams = [];
+
+    for (let elem of formElements) {
+        if (elem.name && elem.value) {
+            queryParams.push(`${encodeURIComponent(elem.name)}=${encodeURIComponent(elem.value)}`);
+        }
+    }
+
+    queryParams.push("number=10");
+    queryParams.push(`apiKey=${apiKey}`);
+
+    const url = `https://api.spoonacular.com/recipes/findByNutrients?${queryParams.join("&")}`;
 
     try {
         const response = await fetch(url);
         const recipes = await response.json();
 
-        let resultsDiv = document.getElementById('recipe-results');
-        resultsDiv.innerHTML = '';
+        const resultsDiv = document.getElementById("recipe-results");
+        resultsDiv.innerHTML = "";
 
         if (recipes.length === 0) {
-            resultsDiv.innerHTML = '<p>No recipes found. Try different ingredients.</p>';
+            resultsDiv.innerHTML = "<p>No recipes found. Try different criteria.</p>";
             return;
         }
 
-        // Fetch full recipe details for each recipe
         for (let recipe of recipes) {
-            let detailsUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
-            let detailsResponse = await fetch(detailsUrl);
-            let detailsData = await detailsResponse.json();
+            const detailsUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
+            const detailsResponse = await fetch(detailsUrl);
+            const detailsData = await detailsResponse.json();
 
             const recipeHtml = `
                 <div>
                     <h2>${detailsData.title}</h2>
                     <img src="${detailsData.image}" alt="${detailsData.title}">
+                    <p><strong>Calories:</strong> ${recipe.calories}</p>
+                    <p><strong>Protein:</strong> ${recipe.protein}</p>
+                    <p><strong>Fat:</strong> ${recipe.fat}</p>
+                    <p><strong>Carbs:</strong> ${recipe.carbs}</p>
+                    <p><strong>Ready in:</strong> ${detailsData.readyInMinutes} minutes</p>
+                    <p><strong>Servings:</strong> ${detailsData.servings}</p>
                     <h3>Ingredients:</h3>
                     <ul>
                         ${detailsData.extendedIngredients.map(ing => `<li>${ing.original}</li>`).join('')}
@@ -60,12 +103,10 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
             `;
             resultsDiv.innerHTML += recipeHtml;
         }
-
     } catch (error) {
-        console.error('Error fetching recipes:', error);
-        document.getElementById('recipe-results').innerHTML = '<p>Error fetching recipes. Please try again.</p>';
+        console.error("Error fetching recipes:", error);
+        document.getElementById("recipe-results").innerHTML = "<p>Error fetching recipes. Please try again.</p>";
     }
 });
 </script>
-
 {% endblock %}

@@ -24,7 +24,7 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
     event.preventDefault();
 
     const ingredients = document.getElementById('ingredients').value;
-    const apiKey = await getApiKey();  //Fetches API key from backend
+    const apiKey = await getApiKey();  // Fetches API key from backend
     const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=20&apiKey=${apiKey}`;
 
     try {
@@ -49,6 +49,8 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
                 <div>
                     <h2>${detailsData.title}</h2>
                     <img src="${detailsData.image}" alt="${detailsData.title}">
+                    <p><strong>Ready in:</strong> ${detailsData.readyInMinutes} minutes</p>
+                    <p><strong>Servings:</strong> ${detailsData.servings}</p>
                     <h3>Ingredients:</h3>
                     <ul>
                         ${detailsData.extendedIngredients.map(ing => `<li>${ing.original}</li>`).join('')}
