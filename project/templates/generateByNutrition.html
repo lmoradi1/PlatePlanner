@@ -3,13 +3,50 @@
 {% block content %}
 <h1 class="title">Filter Recipes by Nutrition</h1>
 
-<!-- Buttons for filtering categories -->
+<!-- Filter Buttons -->
 <div id="filter-buttons">
+    <h3>Macronutrients</h3>
     <button type="button" onclick="showInputs('Calories')">Calories</button>
     <button type="button" onclick="showInputs('Fat')">Fat</button>
     <button type="button" onclick="showInputs('Protein')">Protein</button>
     <button type="button" onclick="showInputs('Carbs')">Carbs</button>
-    <!-- Add more buttons as needed -->
+    <button type="button" onclick="showInputs('Sugar')">Sugar</button>
+    <button type="button" onclick="showInputs('Fiber')">Fiber</button>
+    <button type="button" onclick="showInputs('Cholesterol')">Cholesterol</button>
+
+    <h3>Vitamins</h3>
+    <button type="button" onclick="showInputs('VitaminA')">Vitamin A</button>
+    <button type="button" onclick="showInputs('VitaminC')">Vitamin C</button>
+    <button type="button" onclick="showInputs('VitaminD')">Vitamin D</button>
+    <button type="button" onclick="showInputs('VitaminE')">Vitamin E</button>
+    <button type="button" onclick="showInputs('VitaminK')">Vitamin K</button>
+    <button type="button" onclick="showInputs('VitaminB1')">Vitamin B1</button>
+    <button type="button" onclick="showInputs('VitaminB2')">Vitamin B2</button>
+    <button type="button" onclick="showInputs('VitaminB3')">Vitamin B3</button>
+    <button type="button" onclick="showInputs('VitaminB5')">Vitamin B5</button>
+    <button type="button" onclick="showInputs('VitaminB6')">Vitamin B6</button>
+    <button type="button" onclick="showInputs('VitaminB12')">Vitamin B12</button>
+    <button type="button" onclick="showInputs('Folate')">Folate</button>
+    <button type="button" onclick="showInputs('FolicAcid')">Folic Acid</button>
+    <button type="button" onclick="showInputs('Choline')">Choline</button>
+
+    <h3>Minerals</h3>
+    <button type="button" onclick="showInputs('Calcium')">Calcium</button>
+    <button type="button" onclick="showInputs('Iron')">Iron</button>
+    <button type="button" onclick="showInputs('Zinc')">Zinc</button>
+    <button type="button" onclick="showInputs('Magnesium')">Magnesium</button>
+    <button type="button" onclick="showInputs('Potassium')">Potassium</button>
+    <button type="button" onclick="showInputs('Sodium')">Sodium</button>
+    <button type="button" onclick="showInputs('Phosphorus')">Phosphorus</button>
+    <button type="button" onclick="showInputs('Iodine')">Iodine</button>
+    <button type="button" onclick="showInputs('Selenium')">Selenium</button>
+    <button type="button" onclick="showInputs('Manganese')">Manganese</button>
+    <button type="button" onclick="showInputs('Copper')">Copper</button>
+    <button type="button" onclick="showInputs('Fluoride')">Fluoride</button>
+
+    <h3>Other</h3>
+    <button type="button" onclick="showInputs('Caffeine')">Caffeine</button>
+    <button type="button" onclick="showInputs('Alcohol')">Alcohol</button>
 </div>
 
 <!-- Dynamic filter form -->
@@ -28,20 +65,49 @@ async function getApiKey() {
     return data.api_key;
 }
 
-// Maps category to corresponding API parameters
+// All nutrient filter options
 const nutrientMap = {
     "Calories": ["minCalories", "maxCalories"],
     "Fat": ["minFat", "maxFat"],
     "Protein": ["minProtein", "maxProtein"],
-    "Carbs": ["minCarbs", "maxCarbs"]
-    // Add more categories if desired
+    "Carbs": ["minCarbs", "maxCarbs"],
+    "Sugar": ["minSugar", "maxSugar"],
+    "Fiber": ["minFiber", "maxFiber"],
+    "Cholesterol": ["minCholesterol", "maxCholesterol"],
+    "VitaminA": ["minVitaminA", "maxVitaminA"],
+    "VitaminC": ["minVitaminC", "maxVitaminC"],
+    "VitaminD": ["minVitaminD", "maxVitaminD"],
+    "VitaminE": ["minVitaminE", "maxVitaminE"],
+    "VitaminK": ["minVitaminK", "maxVitaminK"],
+    "VitaminB1": ["minVitaminB1", "maxVitaminB1"],
+    "VitaminB2": ["minVitaminB2", "maxVitaminB2"],
+    "VitaminB3": ["minVitaminB3", "maxVitaminB3"],
+    "VitaminB5": ["minVitaminB5", "maxVitaminB5"],
+    "VitaminB6": ["minVitaminB6", "maxVitaminB6"],
+    "VitaminB12": ["minVitaminB12", "maxVitaminB12"],
+    "Folate": ["minFolate", "maxFolate"],
+    "FolicAcid": ["minFolicAcid", "maxFolicAcid"],
+    "Choline": ["minCholine", "maxCholine"],
+    "Calcium": ["minCalcium", "maxCalcium"],
+    "Iron": ["minIron", "maxIron"],
+    "Zinc": ["minZinc", "maxZinc"],
+    "Magnesium": ["minMagnesium", "maxMagnesium"],
+    "Potassium": ["minPotassium", "maxPotassium"],
+    "Sodium": ["minSodium", "maxSodium"],
+    "Phosphorus": ["minPhosphorus", "maxPhosphorus"],
+    "Iodine": ["minIodine", "maxIodine"],
+    "Selenium": ["minSelenium", "maxSelenium"],
+    "Manganese": ["minManganese", "maxManganese"],
+    "Copper": ["minCopper", "maxCopper"],
+    "Fluoride": ["minFluoride", "maxFluoride"],
+    "Caffeine": ["minCaffeine", "maxCaffeine"],
+    "Alcohol": ["minAlcohol", "maxAlcohol"]
 };
 
-// Keep track of which filters are already added
 const addedCategories = new Set();
 
 function showInputs(category) {
-    if (addedCategories.has(category)) return; // Prevent duplicates
+    if (addedCategories.has(category)) return;
     addedCategories.add(category);
 
     const inputsDiv = document.getElementById("dynamic-inputs");
@@ -52,14 +118,16 @@ function showInputs(category) {
     nutrientMap[category].forEach(param => {
         const label = document.createElement("label");
         label.htmlFor = param;
-        label.innerText = param + ":";
+
+        const isMin = param.startsWith("min");
+        const readableLabel = `${isMin ? "Minimum" : "Maximum"} ${category}`;
+        label.innerText = readableLabel + ":";
 
         const input = document.createElement("input");
-        input.type = "number";
+        input.type = "text";
         input.id = param;
         input.name = param;
-        input.step = "any";
-        input.min = "0";
+        input.placeholder = isMin ? "e.g. 50" : "e.g. 300";
 
         fieldset.appendChild(label);
         fieldset.appendChild(input);
@@ -77,8 +145,11 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
     let queryParams = [];
 
     for (let elem of formElements) {
-        if (elem.name && elem.value) {
-            queryParams.push(`${encodeURIComponent(elem.name)}=${encodeURIComponent(elem.value)}`);
+        if (elem.name && elem.value.trim() !== "") {
+            const parsed = parseFloat(elem.value.trim());
+            if (!isNaN(parsed)) {
+                queryParams.push(`${encodeURIComponent(elem.name)}=${encodeURIComponent(parsed)}`);
+            }
         }
     }
 
@@ -89,6 +160,8 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
 
     try {
         const response = await fetch(url);
+        if (!response.ok) throw new Error("Bad response from API");
+
         const recipes = await response.json();
 
         const resultsDiv = document.getElementById("recipe-results");
@@ -125,6 +198,7 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
             `;
             resultsDiv.innerHTML += recipeHtml;
         }
+
     } catch (error) {
         console.error("Error fetching recipes:", error);
         document.getElementById("recipe-results").innerHTML = "<p>Error fetching recipes. Please try again.</p>";
