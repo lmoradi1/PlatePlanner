@@ -57,3 +57,12 @@ def add_favorite():
     db.session.commit()
 
     return jsonify({"message": "Added to favorites"}), 200
+
+@main.route('/get-favorites')
+@login_required
+def get_favorites():
+    favorites = FavoriteRecipe.query.filter_by(user_id=current_user.id).all()
+    return jsonify([
+        {"recipe_id": fav.recipe_id, "title": fav.title, "image": fav.image}
+        for fav in favorites
+    ])
