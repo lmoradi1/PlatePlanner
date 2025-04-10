@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from . import db
+from .models import FavoriteRecipe
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
-
 def index():
     return render_template('index.html')
 
@@ -39,4 +39,30 @@ def savedRecipes():
 def myPreferences():
     return render_template('myPreferences.html')
 
+@main.route('/add-favorite', methods=['POST'])
+@login_required
+def add_favorite():
+    data = request.get_json()
+    recipe_id = data.get('recipeId')
+    title = data.get('title')
+    image = data.get('image')
 
+    # Check if already saved
+    existing = FavoriteRecipe.query.filter_by(recipe_id=recipe_id, user_id=current_user.id).first()
+    if existing:
+        return jsonify({"message": "Already in favorites"}), 409
+
+    new_fav = FavoriteRecipe(recipe_id=recipe_id, title=title, image=image, user_id=current_user.id)
+    db.session.add(new_fav)
+    db.session.commit()
+
+    return jsonify({"message": "Added to favorites"}), 200
+
+@main.route('/get-favorites')
+@login_required
+def get_favorites():
+    favorites = FavoriteRecipe.query.filter_by(user_id=current_user.id).all()
+    return jsonify([
+        {"recipe_id": fav.recipe_id, "title": fav.title, "image": fav.image}
+        for fav in favorites
+    ])

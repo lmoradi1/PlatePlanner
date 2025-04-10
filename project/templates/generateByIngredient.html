@@ -24,8 +24,8 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
     event.preventDefault();
 
     const ingredients = document.getElementById('ingredients').value;
-    const apiKey = await getApiKey();  // Fetches API key from backend
-    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=20&apiKey=${apiKey}`;
+    const apiKey = await getApiKey();  //Fetches API key from backend
+    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=5&apiKey=${apiKey}`;
 
     try {
         const response = await fetch(url);
@@ -39,7 +39,6 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
             return;
         }
 
-        // Fetch full recipe details for each recipe
         for (let recipe of recipes) {
             let detailsUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
             let detailsResponse = await fetch(detailsUrl);
@@ -57,6 +56,9 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
                     </ul>
                     <h3>Instructions:</h3>
                     <p>${detailsData.instructions || "No instructions available."}</p>
+                    <button onclick="addToFavorites(${detailsData.id}, '${detailsData.title.replace(/'/g, "\\'")}', '${detailsData.image}')">
+                        ❤️ Add to Favorites
+                    </button>
                 </div>
                 <hr>
             `;
@@ -68,6 +70,19 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
         document.getElementById('recipe-results').innerHTML = '<p>Error fetching recipes. Please try again.</p>';
     }
 });
+
+async function addToFavorites(id, title, image) {
+    const response = await fetch("/add-favorite", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ recipeId: id, title: title, image: image })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
 </script>
 
 {% endblock %}
