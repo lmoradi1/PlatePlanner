@@ -55,7 +55,7 @@
     <button type="submit">Find Recipes</button>
 </form>
 
-<!-- Section to display fetched recipes -->
+<!-- Recipe Results -->
 <div id="recipe-results"></div>
 
 <script>
@@ -65,7 +65,6 @@ async function getApiKey() {
     return data.api_key;
 }
 
-// All nutrient filter options
 const nutrientMap = {
     "Calories": ["minCalories", "maxCalories"],
     "Fat": ["minFat", "maxFat"],
@@ -111,14 +110,12 @@ function showInputs(category) {
     addedCategories.add(category);
 
     const inputsDiv = document.getElementById("dynamic-inputs");
-
     const fieldset = document.createElement("fieldset");
     fieldset.innerHTML = `<legend>${category} Range</legend>`;
 
     nutrientMap[category].forEach(param => {
         const label = document.createElement("label");
         label.htmlFor = param;
-
         const isMin = param.startsWith("min");
         const readableLabel = `${isMin ? "Minimum" : "Maximum"} ${category}`;
         label.innerText = readableLabel + ":";
@@ -140,7 +137,6 @@ function showInputs(category) {
 document.getElementById("nutrient-form").addEventListener("submit", async function(event) {
     event.preventDefault();
     const apiKey = await getApiKey();
-
     const formElements = document.getElementById("nutrient-form").elements;
     let queryParams = [];
 
@@ -153,9 +149,8 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
         }
     }
 
-    queryParams.push("number=10");
+    queryParams.push("number=5");
     queryParams.push(`apiKey=${apiKey}`);
-
     const url = `https://api.spoonacular.com/recipes/findByNutrients?${queryParams.join("&")}`;
 
     try {
@@ -163,7 +158,6 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
         if (!response.ok) throw new Error("Bad response from API");
 
         const recipes = await response.json();
-
         const resultsDiv = document.getElementById("recipe-results");
         resultsDiv.innerHTML = "";
 
@@ -193,6 +187,9 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
                     </ul>
                     <h3>Instructions:</h3>
                     <p>${detailsData.instructions || "No instructions available."}</p>
+                    <button onclick="addToFavorites(${detailsData.id}, '${detailsData.title.replace(/'/g, "\\'")}', '${detailsData.image}')">
+                        ❤️ Add to Favorites
+                    </button>
                 </div>
                 <hr>
             `;
@@ -204,5 +201,18 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
         document.getElementById("recipe-results").innerHTML = "<p>Error fetching recipes. Please try again.</p>";
     }
 });
+
+async function addToFavorites(id, title, image) {
+    const response = await fetch("/add-favorite", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ recipeId: id, title: title, image: image })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
 </script>
 {% endblock %}
