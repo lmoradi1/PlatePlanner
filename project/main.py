@@ -47,7 +47,6 @@ def add_favorite():
     title = data.get('title')
     image = data.get('image')
 
-    # Check if already saved
     existing = FavoriteRecipe.query.filter_by(recipe_id=recipe_id, user_id=current_user.id).first()
     if existing:
         return jsonify({"message": "Already in favorites"}), 409
@@ -66,3 +65,17 @@ def get_favorites():
         {"recipe_id": fav.recipe_id, "title": fav.title, "image": fav.image}
         for fav in favorites
     ])
+
+@main.route('/remove-favorite', methods=['POST'])
+@login_required
+def remove_favorite():
+    data = request.get_json()
+    recipe_id = data.get('recipeId')
+
+    to_delete = FavoriteRecipe.query.filter_by(recipe_id=recipe_id, user_id=current_user.id).first()
+    if to_delete:
+        db.session.delete(to_delete)
+        db.session.commit()
+        return jsonify({"message": "Removed from favorites"}), 200
+    else:
+        return jsonify({"message": "Recipe not found in favorites"}), 404

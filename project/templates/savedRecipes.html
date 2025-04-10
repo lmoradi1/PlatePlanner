@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="title">My Favorites</h1>
+<h1 class="title">My Recipes</h1>
 
 <div id="saved-recipe-list"></div>
 
@@ -17,6 +17,7 @@ async function fetchSavedRecipes() {
     const res = await fetch("/get-favorites");
     const saved = await res.json();
     const container = document.getElementById("saved-recipe-list");
+    container.innerHTML = "";
 
     if (!saved.length) {
         container.innerHTML = "<p>You haven't saved any recipes yet.</p>";
@@ -29,25 +30,44 @@ async function fetchSavedRecipes() {
             const response = await fetch(infoUrl);
             const details = await response.json();
 
-            const html = `
-                <div>
-                    <h2>${details.title}</h2>
-                    <img src="${details.image}" alt="${details.title}" width="250">
-                    <p><strong>Ready in:</strong> ${details.readyInMinutes} minutes</p>
-                    <p><strong>Servings:</strong> ${details.servings}</p>
-                    <h3>Ingredients:</h3>
-                    <ul>
-                        ${details.extendedIngredients.map(ing => `<li>${ing.original}</li>`).join('')}
-                    </ul>
-                    <h3>Instructions:</h3>
-                    <p>${details.instructions || "No instructions available."}</p>
-                </div>
+            const wrapper = document.createElement("div");
+            wrapper.innerHTML = `
+                <h2>${details.title}</h2>
+                <img src="${details.image}" alt="${details.title}" width="250">
+                <p><strong>Ready in:</strong> ${details.readyInMinutes} minutes</p>
+                <p><strong>Servings:</strong> ${details.servings}</p>
+                <h3>Ingredients:</h3>
+                <ul>
+                    ${details.extendedIngredients.map(ing => `<li>${ing.original}</li>`).join('')}
+                </ul>
+                <h3>Instructions:</h3>
+                <p>${details.instructions || "No instructions available."}</p>
+                <button onclick="removeFromFavorites(${recipe.recipe_id}, this.parentElement)">
+                    ❌ Remove from Favorites
+                </button>
                 <hr>
             `;
-            container.innerHTML += html;
+            container.appendChild(wrapper);
         } catch (error) {
             console.error("Error fetching full recipe info:", error);
         }
+    }
+}
+
+async function removeFromFavorites(id, element) {
+    const response = await fetch("/remove-favorite", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ recipeId: id })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+
+    if (response.ok) {
+        element.remove();
     }
 }
 
