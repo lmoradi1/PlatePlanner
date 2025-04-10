@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-
 {% block content %}
+
 <h1 class="title">Filter Recipes by Nutrition</h1>
 
 <!-- Filter Buttons -->
@@ -49,7 +49,6 @@
     <button type="button" onclick="showInputs('Alcohol')">Alcohol</button>
 </div>
 
-<!-- Dynamic filter form -->
 <form id="nutrient-form">
     <div id="dynamic-inputs"></div>
     <button type="submit">Find Recipes</button>
@@ -63,6 +62,11 @@ async function getApiKey() {
     const response = await fetch('/get-api-key');
     const data = await response.json();
     return data.api_key;
+}
+
+async function getPreferences() {
+    const res = await fetch('/get-preferences');
+    return await res.json();
 }
 
 const nutrientMap = {
@@ -115,16 +119,12 @@ function showInputs(category) {
 
     nutrientMap[category].forEach(param => {
         const label = document.createElement("label");
-        label.htmlFor = param;
         const isMin = param.startsWith("min");
-        const readableLabel = `${isMin ? "Minimum" : "Maximum"} ${category}`;
-        label.innerText = readableLabel + ":";
-
+        label.innerText = `${isMin ? "Minimum" : "Maximum"} ${category}:`;
         const input = document.createElement("input");
         input.type = "text";
-        input.id = param;
         input.name = param;
-        input.placeholder = isMin ? "e.g. 50" : "e.g. 300";
+        input.placeholder = isMin ? "e.g. 10" : "e.g. 100";
 
         fieldset.appendChild(label);
         fieldset.appendChild(input);
@@ -137,9 +137,12 @@ function showInputs(category) {
 document.getElementById("nutrient-form").addEventListener("submit", async function(event) {
     event.preventDefault();
     const apiKey = await getApiKey();
+    const preferences = await getPreferences();
     const formElements = document.getElementById("nutrient-form").elements;
+
     let queryParams = [];
 
+    // Add nutrient filters
     for (let elem of formElements) {
         if (elem.name && elem.value.trim() !== "") {
             const parsed = parseFloat(elem.value.trim());
@@ -149,19 +152,32 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
         }
     }
 
+    // Add preferences as intolerances
+    const intoleranceList = [];
+    if (preferences.gluten_free) intoleranceList.push('gluten');
+    if (preferences.dairy_free) intoleranceList.push('dairy');
+    if (preferences.soy_free) intoleranceList.push('soy');
+    if (preferences.egg_free) intoleranceList.push('egg');
+    if (preferences.nut_free) intoleranceList.push('nuts');
+    if (preferences.sugar_free) intoleranceList.push('sugar');
+    if (intoleranceList.length > 0) {
+        queryParams.push(`intolerances=${intoleranceList.join(',')}`);
+    }
+
     queryParams.push("number=5");
+    queryParams.push("addRecipeInformation=true");
     queryParams.push(`apiKey=${apiKey}`);
-    const url = `https://api.spoonacular.com/recipes/findByNutrients?${queryParams.join("&")}`;
+
+    const url = `https://api.spoonacular.com/recipes/complexSearch?${queryParams.join("&")}`;
 
     try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error("Bad response from API");
-
-        const recipes = await response.json();
+        const data = await response.json();
+        const recipes = data.results;
         const resultsDiv = document.getElementById("recipe-results");
         resultsDiv.innerHTML = "";
 
-        if (recipes.length === 0) {
+        if (!recipes || recipes.length === 0) {
             resultsDiv.innerHTML = "<p>No recipes found. Try different criteria.</p>";
             return;
         }
@@ -175,10 +191,6 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
                 <div>
                     <h2>${detailsData.title}</h2>
                     <img src="${detailsData.image}" alt="${detailsData.title}">
-                    <p><strong>Calories:</strong> ${recipe.calories}</p>
-                    <p><strong>Protein:</strong> ${recipe.protein}</p>
-                    <p><strong>Fat:</strong> ${recipe.fat}</p>
-                    <p><strong>Carbs:</strong> ${recipe.carbs}</p>
                     <p><strong>Ready in:</strong> ${detailsData.readyInMinutes} minutes</p>
                     <p><strong>Servings:</strong> ${detailsData.servings}</p>
                     <h3>Ingredients:</h3>
@@ -205,14 +217,12 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
 async function addToFavorites(id, title, image) {
     const response = await fetch("/add-favorite", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ recipeId: id, title: title, image: image })
     });
-
     const data = await response.json();
     alert(data.message);
 }
 </script>
+
 {% endblock %}
