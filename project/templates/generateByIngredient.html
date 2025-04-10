@@ -14,20 +14,20 @@
 <div id="recipe-results"></div>
 
 <script>
-// Fetch API key from Flask
+// Fetches API key from Flask
 async function getApiKey() {
     const response = await fetch('/get-api-key');
     const data = await response.json();
     return data.api_key;
 }
 
-// Fetch user preferences from Flask
+// Fetches user preferences from Flask
 async function getPreferences() {
     const response = await fetch('/get-preferences');
     return await response.json();
 }
 
-// Add recipe to favorites
+// Adds recipe to favorites
 async function addToFavorites(id, title, image) {
     const response = await fetch("/add-favorite", {
         method: "POST",
@@ -48,7 +48,7 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
     const apiKey = await getApiKey();
     const preferences = await getPreferences();
 
-    // Convert preferences to Spoonacular intolerances
+    // Converts preferences to Spoonacular intolerances
     const intoleranceList = [];
     if (preferences.gluten_free) intoleranceList.push('gluten');
     if (preferences.dairy_free) intoleranceList.push('dairy');
@@ -61,7 +61,6 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
         ? `&intolerances=${intoleranceList.join(',')}`
         : "";
 
-    // Call complexSearch
     const searchUrl = `https://api.spoonacular.com/recipes/complexSearch?includeIngredients=${encodeURIComponent(ingredients)}&number=5&addRecipeInformation=true${intoleranceParam}&apiKey=${apiKey}`;
 
     try {
@@ -78,7 +77,7 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
         }
 
         for (let recipe of recipes) {
-            // Fetch full recipe details by ID
+            // Fetches full recipe details by ID
             const detailsUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
             const detailsResponse = await fetch(detailsUrl);
             const detailsData = await detailsResponse.json();
