@@ -65,6 +65,11 @@ async function getApiKey() {
     return data.api_key;
 }
 
+async function getPreferences() {
+    const res = await fetch('/get-preferences');
+    return await res.json();
+}
+
 const nutrientMap = {
     "Calories": ["minCalories", "maxCalories"],
     "Fat": ["minFat", "maxFat"],
@@ -137,6 +142,8 @@ function showInputs(category) {
 document.getElementById("nutrient-form").addEventListener("submit", async function(event) {
     event.preventDefault();
     const apiKey = await getApiKey();
+    const preferences = await getPreferences();
+
     const formElements = document.getElementById("nutrient-form").elements;
     let queryParams = [];
 
@@ -147,6 +154,19 @@ document.getElementById("nutrient-form").addEventListener("submit", async functi
                 queryParams.push(`${encodeURIComponent(elem.name)}=${encodeURIComponent(parsed)}`);
             }
         }
+    }
+
+    // Preferences applied as intolerances
+    const intoleranceList = [];
+    if (preferences.gluten_free) intoleranceList.push('gluten');
+    if (preferences.dairy_free) intoleranceList.push('dairy');
+    if (preferences.soy_free) intoleranceList.push('soy');
+    if (preferences.egg_free) intoleranceList.push('egg');
+    if (preferences.nut_free) intoleranceList.push('nuts');
+    if (preferences.sugar_free) intoleranceList.push('sugar');
+
+    if (intoleranceList.length) {
+        queryParams.push(`intolerances=${intoleranceList.join(',')}`);
     }
 
     queryParams.push("number=5");
