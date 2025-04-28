@@ -14,3 +14,5 @@ class FavoriteRecipe(db.Model):
     title = db.Column(db.String(255))
     image = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+

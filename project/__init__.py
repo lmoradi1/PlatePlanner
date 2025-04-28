@@ -14,7 +14,11 @@ def create_app():
     app = Flask(__name__)
 
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')  # Load secret key from .env
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+
+    # Use the DATABASE_PASSWORD from the .env file
+    database_password = os.getenv('DATABASE_PASSWORD')
+    app.config[
+        'SQLALCHEMY_DATABASE_URI'] = f'mysql+mysqlconnector://admin:{database_password}@database-1.ce3g3fiuk5qg.us-east-1.rds.amazonaws.com/PlatePlanner'
 
     db.init_app(app)
     login_manager = LoginManager()
@@ -41,3 +45,4 @@ def create_app():
         return jsonify({"api_key": os.getenv("SPOONACULAR_API_KEY")})
 
     return app
+
