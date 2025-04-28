@@ -1,8 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="title">
-  My Preferences
-</h1>
+<h1 class="title">My Preferences</h1>
+
+<form id="preferences-form">
+  <label><input type="checkbox" name="gluten_free"> Gluten Free</label><br>
+  <label><input type="checkbox" name="dairy_free"> Dairy Free</label><br>
+  <label><input type="checkbox" name="soy_free"> Soy Free</label><br>
+  <label><input type="checkbox" name="egg_free"> Egg Free</label><br>
+  <label><input type="checkbox" name="nut_free"> Nut Free</label><br>
+  <label><input type="checkbox" name="sugar_free"> Sugar Free</label><br><br>
+  <button type="submit">Save Preferences</button>
+</form>
+
+<p id="status-msg"></p>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const form = document.getElementById("preferences-form");
+  const res = await fetch("/get-preferences");
+  const data = await res.json();
+
+  for (let key in data) {
+    const checkbox = form.elements.namedItem(key);
+    if (checkbox) checkbox.checked = data[key];
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const prefs = {};
+    for (let element of form.elements) {
+      if (element.name) {
+        prefs[element.name] = element.checked;
+      }
+    }
+
+    const save = await fetch("/save-preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(prefs)
+    });
+
+    const msg = await save.json();
+    document.getElementById("status-msg").textContent = msg.message;
+  });
+});
+</script>
 
 {% endblock %}

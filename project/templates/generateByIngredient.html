@@ -14,35 +14,73 @@
 <div id="recipe-results"></div>
 
 <script>
+// Fetches API key from Flask
 async function getApiKey() {
     const response = await fetch('/get-api-key');
     const data = await response.json();
     return data.api_key;
 }
 
+// Fetches user preferences from Flask
+async function getPreferences() {
+    const response = await fetch('/get-preferences');
+    return await response.json();
+}
+
+// Adds recipe to favorites
+async function addToFavorites(id, title, image) {
+    const response = await fetch("/add-favorite", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ recipeId: id, title: title, image: image })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+}
+
 document.getElementById('ingredient-form').addEventListener('submit', async function(event) {
     event.preventDefault();
 
     const ingredients = document.getElementById('ingredients').value;
-    const apiKey = await getApiKey();  //Fetches API key from backend
-    const url = `https://api.spoonacular.com/recipes/findByIngredients?ingredients=${encodeURIComponent(ingredients)}&number=5&apiKey=${apiKey}`;
+    const apiKey = await getApiKey();
+    const preferences = await getPreferences();
+
+    // Converts preferences to Spoonacular intolerances
+    const intoleranceList = [];
+    if (preferences.gluten_free) intoleranceList.push('gluten');
+    if (preferences.dairy_free) intoleranceList.push('dairy');
+    if (preferences.soy_free) intoleranceList.push('soy');
+    if (preferences.egg_free) intoleranceList.push('egg');
+    if (preferences.nut_free) intoleranceList.push('nuts');
+    if (preferences.sugar_free) intoleranceList.push('sugar');
+
+    const intoleranceParam = intoleranceList.length
+        ? `&intolerances=${intoleranceList.join(',')}`
+        : "";
+
+    const searchUrl = `https://api.spoonacular.com/recipes/complexSearch?includeIngredients=${encodeURIComponent(ingredients)}&number=5&addRecipeInformation=true${intoleranceParam}&apiKey=${apiKey}`;
 
     try {
-        const response = await fetch(url);
-        const recipes = await response.json();
+        const response = await fetch(searchUrl);
+        const data = await response.json();
 
-        let resultsDiv = document.getElementById('recipe-results');
+        const recipes = data.results;
+        const resultsDiv = document.getElementById('recipe-results');
         resultsDiv.innerHTML = '';
 
-        if (recipes.length === 0) {
+        if (!recipes || recipes.length === 0) {
             resultsDiv.innerHTML = '<p>No recipes found. Try different ingredients.</p>';
             return;
         }
 
         for (let recipe of recipes) {
-            let detailsUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
-            let detailsResponse = await fetch(detailsUrl);
-            let detailsData = await detailsResponse.json();
+            // Fetches full recipe details by ID
+            const detailsUrl = `https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${apiKey}`;
+            const detailsResponse = await fetch(detailsUrl);
+            const detailsData = await detailsResponse.json();
 
             const recipeHtml = `
                 <div>
@@ -70,19 +108,6 @@ document.getElementById('ingredient-form').addEventListener('submit', async func
         document.getElementById('recipe-results').innerHTML = '<p>Error fetching recipes. Please try again.</p>';
     }
 });
-
-async function addToFavorites(id, title, image) {
-    const response = await fetch("/add-favorite", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ recipeId: id, title: title, image: image })
-    });
-
-    const data = await response.json();
-    alert(data.message);
-}
 </script>
 
 {% endblock %}
