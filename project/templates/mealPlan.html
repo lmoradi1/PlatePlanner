@@ -1,8 +1,137 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="title">
-  My Weekly Meal Plan
-</h1>
+<h1 class="title">My Weekly Meal Plan</h1>
+
+<div id="calendar" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
+    {% for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ] %}
+    <div class="day-box" data-day="{{ day }}" style="border: 1px solid #ccc; padding: 10px; cursor: pointer;">
+        <h3>{{ day }}</h3>
+        <div class="meal-content" id="{{ day }}-content"></div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal -->
+<div id="mealModal" style="display: none; position: fixed; top: 20%; left: 30%; background: white; padding: 20px; border: 1px solid black; max-height: 80%; overflow-y: auto;">
+    <h3 id="modalTitle"></h3>
+    <label for="mainType">Choose Main Type:</label>
+    <select id="mainType">
+        <option value="chicken">Chicken</option>
+        <option value="fish">Fish</option>
+        <option value="beef">Beef</option>
+        <option value="vegetarian">Vegetarian</option>
+    </select>
+    <button id="fetchMain" style="margin-left: 10px;">Show Main Options</button>
+    <div id="mainOptions" style="margin-top: 10px;"></div>
+    <button onclick="closeModal()" style="margin-top: 10px;">Cancel</button>
+</div>
+
+<script>
+async function getApiKey() {
+    const response = await fetch('/get-api-key');
+    const data = await response.json();
+    return data.api_key;
+}
+
+function closeModal() {
+    document.getElementById('mealModal').style.display = 'none';
+}
+
+document.querySelectorAll('.day-box').forEach(box => {
+    box.addEventListener('click', () => {
+        const day = box.getAttribute('data-day');
+        document.getElementById('mealModal').style.display = 'block';
+        document.getElementById('modalTitle').innerText = `Select Main for ${day}`;
+        document.getElementById('mealModal').setAttribute('data-day', day);
+        document.getElementById('mainOptions').innerHTML = ''; // clear previous results
+    });
+});
+
+document.getElementById('fetchMain').addEventListener('click', async () => {
+    const day = document.getElementById('mealModal').getAttribute('data-day');
+    const mainType = document.getElementById('mainType').value;
+    const apiKey = await getApiKey();
+
+    const url = `https://api.spoonacular.com/recipes/complexSearch?query=${mainType}&number=5&sort=max-used-ingredients&apiKey=${apiKey}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+    const optionsDiv = document.getElementById('mainOptions');
+    optionsDiv.innerHTML = '';
+
+    data.results.forEach(recipe => {
+        const recipeDiv = document.createElement('div');
+        recipeDiv.style.display = 'flex';
+        recipeDiv.style.alignItems = 'center';
+        recipeDiv.style.justifyContent = 'space-between';
+        recipeDiv.style.marginBottom = '10px';
+        recipeDiv.innerHTML = `
+            <div style="display: flex; align-items: center;">
+                <img src="${recipe.image}" width="100" style="margin-right: 10px;">
+                <span style="font-weight: bold; color: black;">${recipe.title}</span>
+            </div>
+            <button onclick="saveMeal('${day}', 'main', '${mainType}', ${recipe.id}, '${recipe.title.replace(/'/g, "\\'")}', '${recipe.image}')">Save Main</button>
+        `;
+        optionsDiv.appendChild(recipeDiv);
+    });
+});
+
+async function saveMeal(day, mealType, category, recipeId, recipeTitle, recipeImage) {
+    const response = await fetch('/save-meal-plan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            day_of_week: day,
+            meal_type: mealType,
+            category: category,
+            recipe_id: recipeId,
+            recipe_title: recipeTitle,
+            recipe_image: recipeImage
+        })
+    });
+
+    const data = await response.json();
+    alert(data.message);
+
+    closeModal();
+    loadMealPlan();
+}
+
+async function loadMealPlan() {
+    // Clear all day boxes first
+    document.querySelectorAll('.meal-content').forEach(div => {
+        div.innerHTML = '';
+    });
+
+    const response = await fetch('/get-meal-plan');
+    const data = await response.json();
+
+    data.forEach(entry => {
+        const contentDiv = document.getElementById(`${entry.day_of_week}-content`);
+        contentDiv.innerHTML += `
+            <p><strong>${entry.meal_type}:</strong> ${entry.recipe_title}</p>
+            <img src="${entry.recipe_image}" width="80" style="margin-bottom: 5px;">
+        `;
+    });
+}
+
+// Track if initial load is done
+let initialLoadDone = false;
+
+window.onload = () => {
+    if (!initialLoadDone) {
+        loadMealPlan();
+        initialLoadDone = true;
+    }
+};
+
+window.addEventListener('focus', () => {
+    if (initialLoadDone) {
+        loadMealPlan();
+    }
+});
+
+</script>
 
 {% endblock %}

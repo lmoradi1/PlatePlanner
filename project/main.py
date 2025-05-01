@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from . import db
-from .models import FavoriteRecipe, UserPreferences
+from .models import FavoriteRecipe, UserPreferences, MealPlanEntry
 
 main = Blueprint('main', __name__)
 
@@ -121,3 +121,48 @@ def save_preferences():
     db.session.add(prefs)
     db.session.commit()
     return jsonify({"message": "Preferences saved!"})
+
+@main.route('/save-meal-plan', methods=['POST'])
+@login_required
+def save_meal_plan():
+    data = request.get_json()
+
+    # Delete existing entry for same user, day, and meal_type
+    existing = MealPlanEntry.query.filter_by(
+        user_id=current_user.id,
+        day_of_week=data['day_of_week'],
+        meal_type=data['meal_type']
+    ).first()
+
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()  # commit deletion before adding new
+
+    # Add new entry
+    entry = MealPlanEntry(
+        user_id=current_user.id,
+        day_of_week=data['day_of_week'],
+        meal_type=data['meal_type'],
+        category=data['category'],
+        recipe_id=data['recipe_id'],
+        recipe_title=data['recipe_title'],
+        recipe_image=data['recipe_image']
+    )
+    db.session.add(entry)
+    db.session.commit()
+
+    return jsonify({"message": f"{data['meal_type'].capitalize()} saved for {data['day_of_week']}!"})
+
+
+@main.route('/get-meal-plan')
+@login_required
+def get_meal_plan():
+    entries = MealPlanEntry.query.filter_by(user_id=current_user.id).all()
+    return jsonify([{
+        'day_of_week': e.day_of_week,
+        'meal_type': e.meal_type,
+        'category': e.category,
+        'recipe_id': e.recipe_id,
+        'recipe_title': e.recipe_title,
+        'recipe_image': e.recipe_image
+    } for e in entries])
