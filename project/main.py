@@ -127,16 +127,13 @@ def save_preferences():
 def save_meal_plan():
     data = request.get_json()
 
-    # Delete existing entry for same user, day, and meal_type
-    existing = MealPlanEntry.query.filter_by(
+    # Delete old entry first
+    MealPlanEntry.query.filter_by(
         user_id=current_user.id,
         day_of_week=data['day_of_week'],
         meal_type=data['meal_type']
-    ).first()
-
-    if existing:
-        db.session.delete(existing)
-        db.session.commit()  # commit deletion before adding new
+    ).delete()
+    db.session.commit()  # commit deletion before adding
 
     # Add new entry
     entry = MealPlanEntry(
@@ -153,7 +150,6 @@ def save_meal_plan():
 
     return jsonify({"message": f"{data['meal_type'].capitalize()} saved for {data['day_of_week']}!"})
 
-
 @main.route('/get-meal-plan')
 @login_required
 def get_meal_plan():
@@ -166,3 +162,11 @@ def get_meal_plan():
         'recipe_title': e.recipe_title,
         'recipe_image': e.recipe_image
     } for e in entries])
+
+@main.route('/clear-meal-plan', methods=['POST'])
+@login_required
+def clear_meal_plan():
+    MealPlanEntry.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    return jsonify({"message": "Meal plan cleared!"})
+

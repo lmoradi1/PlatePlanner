@@ -3,8 +3,10 @@
 
 <h1 class="title">My Weekly Meal Plan</h1>
 
+<button id="clearCalendarBtn" style="margin-bottom: 15px;">Clear Calendar</button>
+
 <div id="calendar" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px;">
-    {% for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ] %}
+    {% for day in ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
     <div class="day-box" data-day="{{ day }}" style="border: 1px solid #ccc; padding: 10px; cursor: pointer;">
         <h3>{{ day }}</h3>
         <div class="meal-content" id="{{ day }}-content"></div>
@@ -44,7 +46,7 @@ document.querySelectorAll('.day-box').forEach(box => {
         document.getElementById('mealModal').style.display = 'block';
         document.getElementById('modalTitle').innerText = `Select Main for ${day}`;
         document.getElementById('mealModal').setAttribute('data-day', day);
-        document.getElementById('mainOptions').innerHTML = ''; // clear previous results
+        document.getElementById('mainOptions').innerHTML = ''; // 💥 clear old options
     });
 });
 
@@ -58,7 +60,7 @@ document.getElementById('fetchMain').addEventListener('click', async () => {
     const response = await fetch(url);
     const data = await response.json();
     const optionsDiv = document.getElementById('mainOptions');
-    optionsDiv.innerHTML = '';
+    optionsDiv.innerHTML = ''; // 💥 clear before showing new options
 
     data.results.forEach(recipe => {
         const recipeDiv = document.createElement('div');
@@ -78,6 +80,7 @@ document.getElementById('fetchMain').addEventListener('click', async () => {
 });
 
 async function saveMeal(day, mealType, category, recipeId, recipeTitle, recipeImage) {
+    document.getElementById('mealModal').style.pointerEvents = 'none'; // lock modal
     const response = await fetch('/save-meal-plan', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -94,6 +97,7 @@ async function saveMeal(day, mealType, category, recipeId, recipeTitle, recipeIm
     const data = await response.json();
     alert(data.message);
 
+    document.getElementById('mealModal').style.pointerEvents = 'auto'; // unlock modal
     closeModal();
     loadMealPlan();
 }
@@ -116,7 +120,21 @@ async function loadMealPlan() {
     });
 }
 
-// Track if initial load is done
+// Clear calendar button
+document.getElementById('clearCalendarBtn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to clear your meal plan for the week?')) return;
+
+    const response = await fetch('/clear-meal-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await response.json();
+    alert(data.message);
+    loadMealPlan();
+});
+
+// Load on page load and when tab becomes active
 let initialLoadDone = false;
 
 window.onload = () => {
@@ -131,7 +149,6 @@ window.addEventListener('focus', () => {
         loadMealPlan();
     }
 });
-
 </script>
 
 {% endblock %}
