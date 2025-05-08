@@ -10,6 +10,7 @@
   <div class="column is-3">
     <a href="{{ url_for('main.generateByIngredient') }}" class="box has-text-centered has-background-primary-light has-text-dark has-radius">
       <h2>Search Recipes By Ingredients</h2>
+      <img src="{{ url_for('static', filename='images/ingredients.png') }}" alt="Ingredients" style="width: 80px; margin-top: 10px;">
     </a>
   </div>
 
@@ -17,6 +18,7 @@
   <div class="column is-3">
     <a href="{{ url_for('main.generateByNutrition') }}" class="box has-text-centered has-background-info-light has-text-dark has-radius">
       <h2>Search Recipes By Nutrition</h2>
+      <img src="{{ url_for('static', filename='images/nutrition.png') }}" alt="Nutrition" style="width: 80px; margin-top: 10px;">
     </a>
   </div>
 
@@ -24,8 +26,8 @@
   <div class="column is-3">
     <a href="{{ url_for('main.mealPlan') }}" class="box has-text-centered has-background-warning-light has-text-dark has-radius">
       <h2>Weekly Meal Plan</h2>
+      <img src="{{ url_for('static', filename='images/calendar.png') }}" alt="Calendar" style="width: 80px; margin-top: 10px;">
     </a>
   </div>
 </div>
-
 {% endblock %}

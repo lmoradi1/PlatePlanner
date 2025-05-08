@@ -3,3 +3,5 @@ autho/
 auth/
 instance/
 .env
+__pycache__/
+*.pyc
