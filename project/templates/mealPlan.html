@@ -96,11 +96,21 @@ async function saveMeal(day, mealType, category, recipeId, recipeTitle, recipeIm
     });
 
     const data = await response.json();
-    alert(data.message);
+
+
+       if (response.ok) {
+        // Optional delay to ensure backend has finished persisting
+        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+
+        await loadMealPlan(); // Wait for data to reload
+        closeModal();
+    } else {
+        alert('There was a problem saving the meal. Please try again.');
+    }
 
     document.getElementById('mealModal').style.pointerEvents = 'auto'; // unlock modal
-    closeModal();
-    loadMealPlan();
+
+
 }
 
 async function loadMealPlan() {
