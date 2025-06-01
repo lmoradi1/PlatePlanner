@@ -96,9 +96,7 @@ async function saveMeal(day, mealType, category, recipeId, recipeTitle, recipeIm
     });
 
     const data = await response.json();
-
-
-       if (response.ok) {
+        if (response.ok) {
         // Optional delay to ensure backend has finished persisting
         await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
 
@@ -109,7 +107,6 @@ async function saveMeal(day, mealType, category, recipeId, recipeTitle, recipeIm
     }
 
     document.getElementById('mealModal').style.pointerEvents = 'auto'; // unlock modal
-
 
 }
 
