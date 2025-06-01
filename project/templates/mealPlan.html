@@ -16,19 +16,60 @@
 </div>
 
 <!-- Modal -->
-<div id="mealModal" style="display: none; position: fixed; top: 20%; left: 30%; background: white; padding: 20px; border: 1px solid black; max-height: 80%; overflow-y: auto;">
-    <h3 id="modalTitle"></h3>
-    <label for="mainType">Choose Main Type:</label>
-    <select id="mainType">
-        <option value="chicken">Chicken</option>
-        <option value="fish">Fish</option>
-        <option value="beef">Beef</option>
-        <option value="vegetarian">Vegetarian</option>
+<!-- Modal -->
+<div id="mealModal" style="
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    max-height: 80%;
+    overflow-y: auto;
+    z-index: 1000;
+">
+  <div style="display: flex; flex-direction: column; align-items: stretch; gap: 15px;">
+    <h3 id="modalTitle" style="text-align: center; color: #333;">Select a Meal</h3>
+
+    <label for="mainType" style="font-weight: bold; color: #333;">Choose Category:</label>
+    <select id="mainType" style="padding: 8px; font-size: 1rem;">
+      <option value="chicken">Chicken</option>
+      <option value="fish">Fish</option>
+      <option value="beef">Beef</option>
+      <option value="vegetarian">Vegetarian</option>
     </select>
-    <button id="fetchMain" style="margin-left: 10px;">Show Main Options</button>
+
+    <button id="fetchMain" style="
+    padding: 10px;
+    background-color: #00d0b4;  /* matches your background */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+">Show Options</button>
+
+
     <div id="mainOptions" style="margin-top: 10px;"></div>
-    <button onclick="closeModal()" style="margin-top: 10px;">Cancel</button>
+
+    <button onclick="closeModal()" style="
+        padding: 10px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+    ">Cancel</button>
+  </div>
 </div>
+
+
 
 <script>
 async function getApiKey() {
@@ -45,7 +86,7 @@ document.querySelectorAll('.day-box').forEach(box => {
     box.addEventListener('click', () => {
         const day = box.getAttribute('data-day');
         document.getElementById('mealModal').style.display = 'block';
-        document.getElementById('modalTitle').innerText = `Select Main for ${day}`;
+        document.getElementById('modalTitle').innerText = `Select Meal for ${day}`;
         document.getElementById('mealModal').setAttribute('data-day', day);
         document.getElementById('mainOptions').innerHTML = ''; // 💥 clear old options
     });
@@ -74,7 +115,7 @@ document.getElementById('fetchMain').addEventListener('click', async () => {
                 <img src="${recipe.image}" width="100" style="margin-right: 10px;">
                 <span style="font-weight: bold; color: black;">${recipe.title}</span>
             </div>
-            <button onclick="saveMeal('${day}', 'main', '${mainType}', ${recipe.id}, '${recipe.title.replace(/'/g, "\\'")}', '${recipe.image}')">Save Main</button>
+            <button onclick="saveMeal('${day}', 'main', '${mainType}', ${recipe.id}, '${recipe.title.replace(/'/g, "\\'")}', '${recipe.image}')">Save</button>
         `;
         optionsDiv.appendChild(recipeDiv);
     });
